@@ -1,0 +1,22 @@
+{
+  "name": "tradenearby_backend",
+  "version": "1.0.0",
+  "description": "App trade near by me",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev": "nodemon index.js"
+  },
+  "author": "Ernsit Isabekov",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "module-alias": "^2.2.2",
+    "moment": "^2.24.0",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
