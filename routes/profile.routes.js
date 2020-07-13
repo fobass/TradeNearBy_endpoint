@@ -5,5 +5,6 @@ router.get("/:uuID", profile.get);
 router.post("/", profile.insert);
 router.put("/:uuID", profile.update);
 router.delete("/:uuID", profile.delete);
+router.post("/media/:uuid", profile.uploadMedia);
 
 module.exports = router;

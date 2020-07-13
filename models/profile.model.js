@@ -1,4 +1,7 @@
 const { con } = require('../models/conn.db.js')
+const multer = require('multer');
+const fs = require('fs')
+const pathext = require('path')
 
 const ProfileModel = function Profile(profile) {
     this.uuID = profile.uuID
@@ -26,27 +29,41 @@ ProfileModel.insert = (newProfile, result) => {
     con.query("INSERT INTO profile SET ? ", newProfile, (err, res) => {
         if (err) {
             console.log("error: ", err);
-            result(null, {message: err.message, id: newProfile.uuID});
-            return;
+            con.query("UPDATE profile SET photoURL = ?, lat = ?, lon = ? WHERE uuid = ?", [newProfile.photoURL, newProfile.lat, newProfile.lon, newProfile.uuID], (err, res) => {
+                if (err) {
+                    console.log("error: ", err);
+                    result(null, err);
+                    return;
+                }
+      
+                if (res.affectedRows == 0) {
+                    // not found Customer with the id
+                    result({ kind: "not_found" }, null);
+                    return;
+                }
+            });
+
+            result(null, { message: err.message, id: newProfile.uuID });
+            return 
         }
 
-        console.log("created new Profile: ", {...newProfile });
-        result(null, {...newProfile });
+        console.log("created new Profile: ", { ...newProfile });
+        result(null, { ...newProfile });
     });
 }
 
 ProfileModel.get = (uuID, result) => {
     con.query("SELECT * FROM profile WHERE uuID = ?", uuID, (err, res) => {
         if (err) {
-          console.log("error: ", err);
-          result(null, err);
-          return;
+            console.log("error: ", err);
+            result(null, err);
+            return;
         }
         res[0].isActive = (res[0].isActive == 1)
         res[0].isVerified = (res[0].isVerified == 1)
         console.log("profile: ", res);
         result(null, res);
-      });
+    });
 }
 
 ProfileModel.update = (profile, result) => {
@@ -83,17 +100,65 @@ ProfileModel.delete = (uuID, result) => {
             console.log("error: ", err);
             result(null, err);
             return;
-          }
-      
-          if (res.affectedRows == 0) {
+        }
+
+        if (res.affectedRows == 0) {
             // not found Customer with the id
             result({ kind: "not_found" }, null);
             return;
-          }
-      
-          console.log("deleted profile with id: ", uuID);
-          result(null, uuID);
+        }
+
+        console.log("deleted profile with id: ", uuID);
+        result(null, uuID);
     })
+}
+
+ProfileModel.uploadMedia = (uuid, req, result) => {
+    const path = `media/${uuid}`
+    const storage = multer.diskStorage({
+        destination: (req, file, callback) => {
+            fs.mkdirSync(path, { recursive: true })
+            callback(null, path)//(config.const.path.base + config.const.path.productReviewMedia));
+        },
+        filename: (req, file, callback) => {
+            var ext = pathext.extname(file.originalname)
+            callback(null, 'profile' + ext);
+        }
+    });
+
+    const upload = multer({ storage: storage }).any('file');
+
+    upload(req, result, (err) => {
+        if (err) {
+            return result.status(400).send({
+                message: err
+            });
+        }
+        let results = req.files.map((file) => {
+            return {
+                mediaName: file.filename,
+                origMediaName: file.originalname,
+                mediaSource: 'http://' + req.headers.host + '/' + path + '/' + file.filename
+            }
+        });
+
+        con.query("UPDATE profile SET photoURL = ? WHERE uuid = ?", [results[0].mediaSource, uuid], (err, res) => {
+            if (err) {
+                console.log("error: ", err);
+                result(null, err);
+                return;
+            }
+
+            if (res.affectedRows == 0) {
+                // not found Customer with the id
+                result({ kind: "not_found" }, null);
+                return;
+            }
+        });
+
+        // result.status(200).json(results);
+        result(null, results);
+    });
 }
 
 module.exports = ProfileModel; 
