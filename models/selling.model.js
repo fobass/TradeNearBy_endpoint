@@ -20,6 +20,19 @@ const SellingModelDetail = function (sellingdetail) {
   this.imagelinks = sellingdetail.imagelinks
 }
 
+const SellingModelItem = function (selling) {
+  this.id = selling.id
+  this.uuid = selling.uuid
+  this.title = selling.title
+  this.description = selling.description
+  this.price = selling.price
+  this.imagelink = selling.imagelink
+  this.lat = selling.lat
+  this.lon = selling.lon
+  this.dateadded = selling.dateadded
+  this.isactive = selling.isactive
+  this.distance = selling.distance
+}
 
 const SellingModel = function (selling) {
   this.id = selling.id
@@ -35,7 +48,6 @@ const SellingModel = function (selling) {
   this.isactive = selling.isactive
   this.viewcount = selling.viewcount
   this.imagecount = selling.imagecount
-
   
   // this.imagelinks = selling.imagelinks
 }
@@ -94,14 +106,6 @@ SellingModel.getById = (id, result) => {
         imagelinks: linkUrls
       }))
     })
-
-  // this.firstName = sellingdetail.firstName
-  // this.photoURL = sellingdetail.photoURL
-  // this.lat = sellingdetail.lat
-  // this.lon = sellingdetail.lon
-  // this.viewcount = sellingdetail.viewcount
-  // this.imagelinks = sellingdetail.imagelinks
-
     console.log("selling.detail: ", res);
     result(null, sellingdetail);
   });
@@ -119,8 +123,45 @@ SellingModel.get = (lat, lon, dist, result) => {
       return;
     }
 
+    // if (res.length > 0) {
+     
+    //   fs.readdirSync(imgLinks).forEach(file => {
+    //     console.log(res[0].imagelink + "/api/" + imgLinks + "/" + file);
+    //     linkUrls.push(res[0].imagelink + "/api/" + imgLinks + "/" + file)
+
+    //   });
+    // }
+
+    var sellingitems = []
+    res.forEach(item => {
+      var linkUrls = ""
+      var imgLinks = `${mediaFolder}${item.uuid}/${item.id}`
+      fs.readdirSync(imgLinks).forEach(file => {
+        console.log(item.imagelink + "/api/" + imgLinks + "/" + file);
+        if (linkUrls == "") {
+          linkUrls = item.imagelink + "/api/" + imgLinks + "/" + file
+        }
+        //break;
+      });
+
+
+      sellingitems.push(new SellingModelItem({
+        id: item.id,
+        uuid: item.uuid,
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        imagelink: linkUrls,
+        lat: item.lat,
+        lon: item.lon,
+        dateadded: item.dateadded,
+        isactive: item.isactive,
+        distance: item.distance
+      }))
+    })
+
     console.log("profile: ", res);
-    result(null, res);
+    result(null, sellingitems);
   });
 }
 
