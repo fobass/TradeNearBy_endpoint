@@ -5,6 +5,8 @@ const pathext = require('path')
 const mediaFolder = 'media/';
 
 
+
+
 const SellingModelDetail = function (sellingdetail) {
   this.id = sellingdetail.id
   this.uuid = sellingdetail.uuid

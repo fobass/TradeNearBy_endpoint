@@ -1,5 +1,22 @@
 const Selling = require("../models/selling.model.js")
 
+
+exports.getItemsNearBy = (req, res) => {
+  Selling.getById(req.params.id, (err, data) => {
+    if (err) {
+      if (err.kind === "not_found") {
+        res.status(404).send({
+          message: `Sellings with ${req.params.id} id not found`
+        });
+      } else {
+        res.status(500).send({
+          message: "Error retrieving Data "
+        });
+      }
+    } else res.send(data);
+  });
+}
+
 exports.getById = (req, res) => {
   Selling.getById(req.params.id, (err, data) => {
     if (err) {
@@ -17,19 +34,23 @@ exports.getById = (req, res) => {
 };
 
 exports.get = (req, res) => {
-  Selling.get(req.query.lat, req.query.lon, req.query.dist, (err, data) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(404).send({
-          message: `Sellings with ${req.params.dist} id not found`
-        });
-      } else {
-        res.status(500).send({
-          message: "Error retrieving Data "
-        });
-      }
-    } else res.send(data);
-  });
+  // var lat = req.headers.lat 
+  // var lon = req.headers.lon 
+  // var dist = req.headers['dist']
+    Selling.get(req.query.lat, req.query.lon, req.query.dist, (err, data) => {
+      if (err) {
+        if (err.kind === "not_found") {
+          res.status(404).send({
+            message: `Sellings with ${req.params.dist} id not found`
+          });
+        } else {
+          res.status(500).send({
+            message: "Error retrieving Data "
+          });
+        }
+      } else res.send(data);
+    });
+  
 };
 
 exports.getMy = (req, res) => {

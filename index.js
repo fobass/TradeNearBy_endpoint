@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const selling = require('./routes/selling.routes.js')
 const profile = require("./routes/profile.routes.js")
 const location = require("./routes/location.routes.js");
+const item = require("./routes/item.routes.js");
+
 const { con } = require("./models/conn.db.js");
 const multer = require('multer');
 const fs = require('fs')
@@ -22,6 +24,8 @@ app.use('/api/selling', selling)
 app.use('/api/profile', profile)
 app.use('/api/location', location)
 // app.use('/api/selling/detail', sellingdetail)
+app.use('/api/items', item)
+
 app.get('/', (req, res) => res.send(''))
 
 
