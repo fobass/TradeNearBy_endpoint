@@ -1,11 +1,11 @@
 const Profile = require("../models/profile.model")
 
 exports.get = (req, res) => {
-  Profile.get(req.params.uuID, (err, data) => {
+  Profile.get(req.params.uuid, (err, data) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
-          message: `Profile with ${req.body.params.uuID} id not found`
+          message: `Profile with ${req.params.uuid} id not found`
         });
       } else {
         res.status(500).send({
@@ -15,6 +15,7 @@ exports.get = (req, res) => {
     } else res.send(data);
   });
 };
+
 
 exports.insert = (req, res) => {
   // Validate request
@@ -47,11 +48,11 @@ exports.update = (req, res) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
-          message: `Not found Profile with id ${req.body.uuID}.`
+          message: `Not found Profile with id ${req.body.uuid}.`
         });
       } else {
         res.status(500).send({
-          message: "Error updating Profile with id " + req.body.uuID
+          message: "Error updating Profile with id " + req.body.uuid
         });
       }
     } else res.send(data);
@@ -61,18 +62,18 @@ exports.update = (req, res) => {
 
 
 exports.delete = (req, res) => {
-  Profile.delete(req.params.uuID, (err, data) => {
+  Profile.delete(req.params.uuid, (err, data) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
-          message: `Not found Profile with id ${req.params.uuID}.`
+          message: `Not found Profile with id ${req.params.uuid}.`
         });
       } else {
         res.status(500).send({
-          message: "Could not delete Profile with id " + req.params.uuID
+          message: "Could not delete Profile with id " + req.params.uuid
         });
       }
-    } else res.send({ message: `Profile was deleted successfully!`, id: req.params.uuID });
+    } else res.send({ message: `Profile was deleted successfully!`, id: req.params.uuid });
   });
 };
 

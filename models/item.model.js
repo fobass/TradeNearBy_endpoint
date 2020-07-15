@@ -1,4 +1,8 @@
 const { con } = require('../models/conn.db.js')
+const multer = require('multer');
+const fs = require('fs')
+const pathext = require('path')
+const mediaFolder = 'media/';
 
 const ItemModel = function (item) {
     this.id = item.id
@@ -37,7 +41,7 @@ ItemModel.update = (id, item, result) => {
 }
 
 ItemModel.getItemsNearBy = (lat, lon, dist, result) => {
-    var q = 'SELECT  id, title, description, price, imagelink, lat, lon, (3959 * acos(cos(radians(' + lat + ')) '
+    var q = 'SELECT  id, uuid, title, description, price, imagelink, lat, lon, dateadded, views, sold, reviewid, (3959 * acos(cos(radians(' + lat + ')) '
         + '* cos(radians(lat)) * cos(radians(lon) - radians(' + lon + ')) + sin(radians(' + lat + ')) * '
         + ' sin(radians(lat )))) AS distance FROM items HAVING distance < ' + dist + ' '
     con.query(q, (err, res) => {
@@ -58,12 +62,12 @@ ItemModel.getItemById = (id, result) => {
             result(null, err);
             return;
         }
-
         if (res.length == 0) {
             // not found Customer with the id
+
             result({ kind: "not_found" }, null);
             return;
-        }
+        } 
 
         result(null, res[0]);
     })
@@ -99,6 +103,67 @@ ItemModel.delete = (id, result) => {
         console.log("deleted item with id: ", id);
         result(null, id);
     })
+}
+
+ItemModel.uploadmedia = (req, result) => {
+
+    //var path = `http://192.168.0.127:3000/media/${newItem.uuid}/${newItem.id}`
+    // const link = `${req.protocol}://${req.headers.host}/media/${req.params.uuid}/${req.params.id}`
+
+
+    con.query("SELECT uuid FROM profile WHERE uuid = ?", [req.params.uuid], (err, res) => {
+        if (res.length == 0) {
+            // not found Customer with the id
+            result({ kind: "not_found" }, null);
+            return;
+        }
+
+        const path = `media/${req.params.uuid}/${req.params.id}`
+        const id = req.params.id
+
+        const storage = multer.diskStorage({
+            destination: (req, file, callback) => {
+                fs.mkdirSync(path, { recursive: true })
+                callback(null, path)//(config.const.path.base + config.const.path.productReviewMedia));
+            },
+            filename: (req, file, callback) => {
+                //var ext = pathext.extname(file.originalname)
+                callback(null, Date.now() + '-' + file.originalname);
+            }
+        });
+
+        const upload = multer({ storage: storage }).any('file');
+
+
+        upload(req, result, (err) => {
+            if (err) {
+                console.log(err)
+                return result(null, { message: err })
+            }
+
+            if (req.files) {
+                let results = req.files.map((file) => {
+                    return {
+                        mediaName: file.filename,
+                        origMediaName: file.originalname,
+                        mediaSource: 'http://' + req.headers.host + '/' + path + '/' + file.originalname
+                    }
+                });
+                con.query("INSERT INTO itemimagelinks SET id = ?, link = ? ", [id, results[0].mediaSource], (err, res) => { })
+
+                result(null, results);
+            } else {
+                result(null, "Content can not be empty!");
+            }
+        });
+
+    })
+
+
+
+
+
+
 }
 
 module.exports = ItemModel; 

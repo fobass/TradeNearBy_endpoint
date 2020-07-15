@@ -242,8 +242,6 @@ SellingModel.uploadMedia = (uuid, id, req, result) => {
       }
     });
 
-
-
     // result.status(200).json(results);
     result(null, results);
   });

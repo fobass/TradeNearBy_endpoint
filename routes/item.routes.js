@@ -5,6 +5,7 @@ router.get("/", item.getItemsNearBy);
 router.get("/:id", item.getItemById);
 // router.post("/media/:uuid", item.uploadMedia);
 router.post("/", item.insert);
+router.post("/:uuid/:id", item.uploadmedia);
 router.put("/:id", item.update);
 router.delete("/:id", item.delete);
 

@@ -25,6 +25,7 @@ exports.getItemById = (req, res) => {
         res.status(400).send({
             message: "Invalid param"
         });
+        return
     }
 
     Item.getItemById(req.params.id, (err, data) => {
@@ -65,11 +66,13 @@ exports.update = (req, res) => {
         res.status(400).send({
             message: "Content can not be empty!"
         });
+        return
     }
     if (!req.params.id) {
         res.status(400).send({
             message: "Invalid param"
         });
+        return
     }
 
     Item.update(req.params.id, new Item(req.body), (err, data) => {
@@ -81,7 +84,38 @@ exports.update = (req, res) => {
     });
 };
 
+exports.uploadmedia = (req, res) => {
+    if (!req.params) {
+        res.status(400).send({
+          message: "Params can not be empty!"
+        });
+        // return
+      }
+
+      Item.uploadmedia(req, (err, data) => {
+        if (err) { 
+            if (err.kind === "not_found") {
+                res.status(404).send({
+                    message: `User not found with id ${req.params.id}`
+                });
+            } else {
+                res.status(500).send({
+                    message: err.message || "Some error occurred while uploading files."
+                });
+            }
+        }
+        else res.send(data);
+      });
+  };
+
 exports.delete = (req, res) => {
+    if (!req.params) {
+        res.status(400).send({
+          message: "Params can not be empty!"
+        });
+        return
+      }
+
     Item.delete(req.params.id, (err, data) => {
         if (err) {
             if (err.kind === "not_found") {

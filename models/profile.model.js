@@ -4,7 +4,7 @@ const fs = require('fs')
 const pathext = require('path')
 
 const ProfileModel = function Profile(profile) {
-    this.uuID = profile.uuID
+    this.uuid = profile.uuid
     this.firstName = profile.firstName
     this.lastName = profile.lastName
     this.pwd = profile.pwd
@@ -29,7 +29,7 @@ ProfileModel.insert = (newProfile, result) => {
     con.query("INSERT INTO profile SET ? ", newProfile, (err, res) => {
         if (err) {
             console.log("error: ", err);
-            con.query("UPDATE profile SET photoURL = ?, lat = ?, lon = ? WHERE uuid = ?", [newProfile.photoURL, newProfile.lat, newProfile.lon, newProfile.uuID], (err, res) => {
+            con.query("UPDATE profile SET photoURL = ?, lat = ?, lon = ? WHERE uuid = ?", [newProfile.photoURL, newProfile.lat, newProfile.lon, newProfile.uuid], (err, res) => {
                 if (err) {
                     console.log("error: ", err);
                     result(null, err);
@@ -43,38 +43,47 @@ ProfileModel.insert = (newProfile, result) => {
                 }
             });
 
-            result(null, { message: err.message, id: newProfile.uuID });
+            result(null, { message: err.message, id: newProfile.uuid });
             return 
         }
+        const path = `media/${newProfile.uuid}`
+        fs.mkdirSync(path, { recursive: true })
 
         console.log("created new Profile: ", { ...newProfile });
         result(null, { ...newProfile });
     });
 }
 
-ProfileModel.get = (uuID, result) => {
-    con.query("SELECT * FROM profile WHERE uuID = ?", uuID, (err, res) => {
+ProfileModel.get = (uuid, result) => {
+    con.query("SELECT * FROM profile WHERE uuid = ?", uuid, (err, res) => {
         if (err) {
             console.log("error: ", err);
             result(null, err);
             return;
         }
+
+        if (res.length == 0) {
+            // not found Customer with the id
+            result({ kind: "not_found" }, null);
+            return;
+        }
+
         res[0].isActive = (res[0].isActive == 1)
         res[0].isVerified = (res[0].isVerified == 1)
-        console.log("profile: ", res);
-        result(null, res);
+        console.log("profile: ", res[0]);
+        result(null, res[0]);
     });
 }
 
 ProfileModel.update = (profile, result) => {
     con.query(
-        "UPDATE profile SET uuID = ?, firstName = ?, lastName = ?, pwd = ?, gender = ?, phoneNumber = ?, " +
+        "UPDATE profile SET uuid = ?, firstName = ?, lastName = ?, pwd = ?, gender = ?, phoneNumber = ?, " +
         "dateOfBirth = ?, email = ?, photoURL = ?, emergencyContact = ?, isActive = ?, isVerified = ?," +
         "verifiedDocID = ?, about = ?, dateJoined = ?, score = ?, lat = ?, lon = ?, commentsID =?  WHERE uuID = ?",
-        [profile.uuID, profile.firstName, profile.lastName, profile.pwd, profile.gender, profile.phoneNumber,
+        [profile.uuid, profile.firstName, profile.lastName, profile.pwd, profile.gender, profile.phoneNumber,
         profile.dateOfBirth, profile.email, profile.photoURL, profile.emergencyContact, profile.isActive, profile.isVerified,
         profile.verifiedDocID, profile.about, profile.dateJoined, profile.score, profile.lat, profile.lon, profile.commentsID,
-        profile.uuID],
+        profile.uuid],
         (err, res) => {
             if (err) {
                 console.log("error: ", err);
@@ -88,14 +97,14 @@ ProfileModel.update = (profile, result) => {
                 return;
             }
 
-            console.log("updated profile: ", { id: profile.uuID, ...profile });
-            result(null, { id: profile.uuID, ...profile });
+            console.log("updated profile: ", { id: profile.uuid, ...profile });
+            result(null, { id: profile.uuid, ...profile });
         }
     );
 }
 
-ProfileModel.delete = (uuID, result) => {
-    con.query('DELETE FROM profile WHERE uuID = ? ', uuID, (err, res) => {
+ProfileModel.delete = (uuid, result) => {
+    con.query('DELETE FROM profile WHERE uuid = ? ', uuid, (err, res) => {
         if (err) {
             console.log("error: ", err);
             result(null, err);
@@ -108,8 +117,8 @@ ProfileModel.delete = (uuID, result) => {
             return;
         }
 
-        console.log("deleted profile with id: ", uuID);
-        result(null, uuID);
+        console.log("deleted profile with id: ", uuid);
+        result(null, uuid);
     })
 }
 
